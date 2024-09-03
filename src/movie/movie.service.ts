@@ -1,23 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  NotFoundException,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { AppService } from './app.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-interface Movie {
+export interface Movie {
   id: number;
   title: string;
 }
 
-@Controller('movie') //공통적인api를 묶어줌 ()에 값을 넣으면 하위메서드의 기본값이 생성
-export class AppController {
+@Injectable()
+export class MovieService {
   private movies: Movie[] = [
     {
       id: 1,
@@ -28,20 +17,17 @@ export class AppController {
       title: '반지의 제왕',
     },
   ];
-
   private idCounter = 3;
-  constructor(private readonly appService: AppService) {}
-  @Get()
-  getMovies(@Query('title') title?: string) {
+
+  getManyMovies(title?: string) {
     if (!title) {
       return this.movies;
     }
     return this.movies.filter((m) => m.title.startsWith(title));
   }
 
-  @Get(':id')
-  getMovie(@Param('id') id: string) {
-    const movie = this.movies.find((m) => m.id === +id);
+  getMovieByID(id: number) {
+    const movie = this.movies.find((m) => m.id === id);
 
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
@@ -49,9 +35,7 @@ export class AppController {
     return movie;
   }
 
-  @Post()
-  //가져올값을 body에 넣어줘야함
-  postMovie(@Body('title') title: string) {
+  creatMovie(title: string) {
     const movie: Movie = {
       id: this.idCounter++,
       title,
@@ -60,8 +44,7 @@ export class AppController {
     return movie;
   }
 
-  @Patch(':id')
-  patchMovie(@Param('id') id: string, @Body('title') title: string) {
+  updateMovie(id: number, title: string) {
     const movie = this.movies.find((m) => m.id === +id);
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
@@ -70,8 +53,7 @@ export class AppController {
     return movie;
   }
 
-  @Delete(':id')
-  deleteMovie(@Param('id') id: string) {
+  deleteMovie(id: number) {
     const movieIndex = this.movies.findIndex((m) => m.id === +id);
     if (movieIndex === -1) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
