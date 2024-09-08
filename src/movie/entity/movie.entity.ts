@@ -1,13 +1,13 @@
-import { Exclude, Expose, Transform } from 'class-transformer';
+// import { Exclude, Expose, Transform } from 'class-transformer';
 
 //비노출 시키기
 // @Exclude()
 export class Movie {
   //노출시키기
-//   @Expose()
+  //   @Expose()
   id: number;
-//   @Expose()
+  //   @Expose()
   title: string;
-  @Transform(({ value }) => value.toString().toUpperCase())
+  //   @Transform(({ value }) => value.toString().toUpperCase())
   genre: string;
 }
