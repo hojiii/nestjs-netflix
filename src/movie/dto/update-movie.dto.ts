@@ -1,71 +1,71 @@
 import {
-  Contains,
-  Equals,
-  IsAlphanumeric,
-  IsArray,
-  IsBoolean,
-  IsCreditCard,
-  IsDateString,
-  IsDefined,
-  IsEmpty,
-  IsEnum,
-  IsHexColor,
-  IsIn,
-  IsInt,
-  IsLatLong,
-  IsNegative,
+  // Contains,
+  // Equals,
+  // IsAlphanumeric,
+  // IsArray,
+  // IsBoolean,
+  // IsCreditCard,
+  // IsDateString,
+  // IsDefined,
+  // IsEmpty,
+  // IsEnum,
+  // IsHexColor,
+  // IsIn,
+  // IsInt,
+  // IsLatLong,
+  // IsNegative,
   IsNotEmpty,
-  IsNotIn,
-  IsNumber,
+  // IsNotIn,
+  // IsNumber,
   IsOptional,
-  IsPositive,
-  isPositive,
-  IsString,
-  IsUUID,
-  Max,
-  MaxLength,
-  Min,
-  MinLength,
-  NotContains,
-  NotEquals,
-  registerDecorator,
-  Validate,
-  ValidationArguments,
-  ValidationOptions,
-  Validator,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
+  // IsPositive,
+  // isPositive,
+  // IsString,
+  // IsUUID,
+  // Max,
+  // MaxLength,
+  // Min,
+  // MinLength,
+  // NotContains,
+  // NotEquals,
+  // registerDecorator,
+  // Validate,
+  // ValidationArguments,
+  // ValidationOptions,
+  // Validator,
+  // ValidatorConstraint,
+  // ValidatorConstraintInterface,
 } from 'class-validator';
 
-enum MovieGenre {
-  Fantasy = 'fantasy',
-  Action = 'action',
-}
+// enum MovieGenre {
+//   Fantasy = 'fantasy',
+//   Action = 'action',
+// }
 // @ValidatorConstraint({async: true}) 동기로도 사용가능
-@ValidatorConstraint()
-class PasswordValidator implements ValidatorConstraintInterface {
-  validate(
-    value: any,
-    validationArguments?: ValidationArguments,
-  ): Promise<boolean> | boolean {
-      //비밀번호 길이는 4-8
-      return value.length > 4 && value.length < 8;
-  }
-  defaultMessage(validationArguments?: ValidationArguments): string {
-    return `비밀번호의 길이는 5-8자 여야합니다. 입력된 비밀번호: ($value)`;
-  }
-}
+// @ValidatorConstraint()
+// class PasswordValidator implements ValidatorConstraintInterface {
+//   validate(
+//     value: any,
+//     validationArguments?: ValidationArguments,
+//   ): Promise<boolean> | boolean {
+//       //비밀번호 길이는 4-8
+//       return value.length > 4 && value.length < 8;
+//   }
+//   defaultMessage(validationArguments?: ValidationArguments): string {
+//     return `비밀번호의 길이는 5-8자 여야합니다. 입력된 비밀번호: ($value)`;
+//   }
+// }
 
-function IsPasswordValid(validationOption?: ValidationOptions){
-  return function (object: Object, propertyName: string) {
-    registerDecorator({
-      target: object.constructor,
-      propertyName,
-      options: validationOption,
-      validator: PasswordValidator,
-    });
-  }
-}
+// function IsPasswordValid(validationOption?: ValidationOptions){
+//   return function (object: Object, propertyName: string) {
+//     registerDecorator({
+//       target: object.constructor,
+//       propertyName,
+//       options: validationOption,
+//       validator: PasswordValidator,
+//     });
+//   }
+// }
 
 export class UpdateMovieDto {
   @IsNotEmpty()
@@ -136,6 +136,6 @@ export class UpdateMovieDto {
   // @Validate(PasswordValidator,{
   //   message: '다른에러 메세지',
   // })
-  @IsPasswordValid()
+  // @IsPasswordValid()
   test: string;
 }
