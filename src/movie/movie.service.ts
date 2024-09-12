@@ -2,35 +2,48 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class MovieService {
-  private movies: Movie[] = [];
-  private idCounter = 3;
+  //데이터 베이스를 inject해서 더미 필요없음
+  // private movies: Movie[] = [];
+  // private idCounter = 3;
 
-  constructor() {
-    const movie1 = new Movie();
-    movie1.id = 1;
-    movie1.title = '해리포터';
-    movie1.genre = 'fantasy';
-
-    const movie2 = new Movie();
-    movie2.id = 2;
-    movie2.title = '반지의 제완';
-    movie2.genre = 'action';
-
-    this.movies.push(movie1, movie2);
+  constructor(
+    //아래처럼 하면 module에 forFeature에 넣었기때문에 자동으로 받을 수 있다(inject)
+    @InjectRepository(Movie)
+    private readonly movieRepository: Repository<Movie>,
+  ) {
+    //데이터 베이스를 inject해서 더미 필요없음
+    // const movie1 = new Movie();
+    // movie1.id = 1;
+    // movie1.title = '해리포터';
+    // movie1.genre = 'fantasy';
+    // const movie2 = new Movie();
+    // movie2.id = 2;
+    // movie2.title = '반지의 제완';
+    // movie2.genre = 'action';
+    // this.movies.push(movie1, movie2);
   }
 
   getManyMovies(title?: string) {
-    if (!title) {
-      return this.movies;
-    }
-    return this.movies.filter((m) => m.title.startsWith(title));
+    return this.movieRepository.find();
+    //TODO:나중에 title 필터 기능 추가하기
+    //  if (!title) {
+    //     return this.movies;
+    //   }
+    //   return this.movies.filter((m) => m.title.startsWith(title));
   }
 
-  getMovieByID(id: number) {
-    const movie = this.movies.find((m) => m.id === id);
+  async getMovieByID(id: number) {
+    const movie = await this.movieRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    //   const movie = this.movies.find((m) => m.id === id);
 
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
@@ -38,31 +51,53 @@ export class MovieService {
     return movie;
   }
 
-  creatMovie(CreateMovieDto: CreateMovieDto) {
-    const movie: Movie = {
-      id: this.idCounter++,
-      ...CreateMovieDto,
-    };
-    this.movies.push(movie);
+  async creatMovie(CreateMovieDto: CreateMovieDto) {
+    const movie = await this.movieRepository.save(CreateMovieDto);
+
+    // const movie: Movie = {
+    //   id: this.idCounter++,
+    //   ...CreateMovieDto,
+    //   createdAt: new Date(),
+    //   updatedAt: new Date(),
+    //   version: 0,
+    // };
+    // this.movies.push(movie);
     return movie;
   }
 
-  updateMovie(id: number, updateMovieDto: UpdateMovieDto) {
-    const movie = this.movies.find((m) => m.id === +id);
+  async updateMovie(id: number, updateMovieDto: UpdateMovieDto) {
+    const movie = await this.movieRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    // const movie = this.movies.find((m) => m.id === +id);
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
-    Object.assign(movie, updateMovieDto); //덮어씌우기
-    return movie;
+    await this.movieRepository.update({ id }, updateMovieDto); //덮어씌우기 해당Id의 데이터
+
+    const newMovie = await this.movieRepository.findOne({
+      where: {
+        id,
+      },
+    }); //업데이트된 해당 아이디 찾아서 반환,업데이트 함수는 저장한 값을 반환해주지 않기때문에
+    // Object.assign(movie, updateMovieDto); //덮어씌우기
+    return newMovie;
   }
 
-  deleteMovie(id: number) {
-    const movieIndex = this.movies.findIndex((m) => m.id === +id);
-    if (movieIndex === -1) {
+  async deleteMovie(id: number) {
+    const movie = await this.movieRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    // const movieIndex = this.movies.findIndex((m) => m.id === +id);
+    if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
-    this.movies.splice(movieIndex, 1);
-
-    return id;
+    await this.movieRepository.delete(id);
+    // this.movies.splice(movieIndex, 1);
   }
 }
