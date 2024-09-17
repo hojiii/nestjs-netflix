@@ -3,7 +3,7 @@ import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
-import { Movie } from './movie/entity/movie.entity';
+import { Content, Movie, series } from './movie/entity/movie.entity';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { Movie } from './movie/entity/movie.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Movie],
+        entities: [Movie, series, Content],
         //개발할때만 true , 운영은 false 자동으로 코드와 맞게 데이터베이스를 싱크를 시키라는것
         synchronize: true,
       }),
