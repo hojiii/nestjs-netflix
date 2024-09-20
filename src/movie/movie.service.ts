@@ -4,6 +4,7 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
+import { MovieDetail } from './entity/movie-detail.entity';
 
 @Injectable()
 export class MovieService {
@@ -15,6 +16,8 @@ export class MovieService {
     //아래처럼 하면 module에 forFeature에 넣었기때문에 자동으로 받을 수 있다(inject)
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
+    @InjectRepository(MovieDetail)
+    private readonly moviedetailRepository: Repository<MovieDetail>,
   ) {
     //데이터 베이스를 inject해서 더미 필요없음
     // const movie1 = new Movie();
@@ -52,6 +55,7 @@ export class MovieService {
       where: {
         id,
       },
+      relations: ['detail'], //특정 값을 가져와서 보여주고싶을때 해당 프로퍼티를 넣는다
     });
     //   const movie = this.movies.find((m) => m.id === id);
 
@@ -61,8 +65,15 @@ export class MovieService {
     return movie;
   }
 
-  async creatMovie(CreateMovieDto: CreateMovieDto) {
-    const movie = await this.movieRepository.save(CreateMovieDto);
+  async creatMovie(createMovieDto: CreateMovieDto) {
+    const movieDetail = await this.moviedetailRepository.save({
+      detail: createMovieDto.detail,
+    });
+    const movie = await this.movieRepository.save({
+      title: createMovieDto.title,
+      genre: createMovieDto.genre,
+      detail: movieDetail,
+    });
 
     // const movie: Movie = {
     //   id: this.idCounter++,

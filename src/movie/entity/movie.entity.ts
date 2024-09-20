@@ -1,75 +1,73 @@
 // import { Exclude, Expose, Transform } from 'class-transformer';
 
 import {
-  ChildEntity,
   Column,
-  CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
-  TableInheritance,
-  UpdateDateColumn,
-  VersionColumn,
 } from 'typeorm';
+import { BaseTable } from './base-table.entity';
+import { MovieDetail } from './movie-detail.entity';
 
+///ManyToOne Director -> 감독은 여러개의 영화를 만들 수 있음
+///OneToOne MovieDetail -> 영화는 하나의 상세 내용을 갖을 수 있음
+///ManyToMany Genre -> 영화는 여러개의 장르, 장르는 여러개의 영화애 속할 수 있음
+
+///SingleTableInheritance
 ///movie / serires -> content
 ///runtime(영화 사영시간)/ seriesCount (몇부작인지)
-
-export class BaseEntity {
-  @CreateDateColumn()
-  createdAt: Date;
-  @UpdateDateColumn()
-  updatedAt: Date;
-  @VersionColumn()
-  version: number;
-}
-@Entity()
-@TableInheritance({
-  column: {
-    type: 'varchar',
-    name: 'type',
-  },
-})
-export class Content extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-  @Column()
-  title: string;
-  @Column()
-  genre: string;
-}
+// @Entity()
+// @TableInheritance({
+//   column: {
+//     type: 'varchar',
+//     name: 'type',
+//   },
+// })
+// export class Content extends BaseEntity {
+//   @PrimaryGeneratedColumn()
+//   id: number;
+//   @Column()
+//   title: string;
+//   @Column()
+//   genre: string;
+// }
 
 //비노출 시키기
 // @Exclude()
-// @Entity()
-@ChildEntity()
+@Entity()
 //선언을 해줘야 table 생성이 됨
-export class Movie extends Content {
+export class Movie extends BaseTable {
   //노출시키기
   //   @Expose()
-  //   @PrimaryGeneratedColumn()
-  //   id: number;
-  //   //   @Expose()
-  //   @Column()
-  //   title: string;
-  //   //   @Transform(({ value }) => value.toString().toUpperCase())
-  //   @Column()
-  //   genre: string;
+  @PrimaryGeneratedColumn()
+  id: number;
+  //   @Expose()
   @Column()
-  runtime: number;
+  title: string;
+  //   @Transform(({ value }) => value.toString().toUpperCase())
+  @Column()
+  genre: string;
+  // @Column()
+  // runtime: number;
+
+  @OneToOne(() => MovieDetail)
+  @JoinColumn()
+  detail: MovieDetail;
   //Entity Embedding
   //   @Column(() => BaseEntity)
   //   base: BaseEntity;
 }
-@ChildEntity()
-export class series extends Content {
-  //   @PrimaryGeneratedColumn()
-  //   id: number;
-  //   //   @Expose()
-  //   @Column()
-  //   title: string;
-  //   //   @Transform(({ value }) => value.toString().toUpperCase())
-  //   @Column()
-  //   genre: string;
-  @Column()
-  seriesCount: number;
-}
+// @Entity()
+// export class series extends BaseEntity {
+//   @PrimaryGeneratedColumn()
+//   id: number;
+//   //   @Expose()
+//   @Column()
+//   title: string;
+//   //   @Transform(({ value }) => value.toString().toUpperCase())
+//   @Column()
+//   genre: string;
+//   @Column()
+//   seriesCount: number;
+// }
