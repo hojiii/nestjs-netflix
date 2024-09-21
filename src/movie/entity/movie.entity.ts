@@ -51,7 +51,12 @@ export class Movie extends BaseTable {
   // @Column()
   // runtime: number;
 
-  @OneToOne(() => MovieDetail)
+  @OneToOne(
+    () => MovieDetail,
+    (moviedetail) => moviedetail.id,
+    //movie를 만들때 조인한 컬럼까지 전부다 같이 만들수 있게 해주는 옵션
+    { cascade: true },
+  )
   @JoinColumn()
   detail: MovieDetail;
   //Entity Embedding

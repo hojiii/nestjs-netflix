@@ -66,13 +66,13 @@ export class MovieService {
   }
 
   async creatMovie(createMovieDto: CreateMovieDto) {
-    const movieDetail = await this.moviedetailRepository.save({
-      detail: createMovieDto.detail,
-    });
+    // const movieDetail = await this.moviedetailRepository.save({
+    //   detail: createMovieDto.detail,
+    // });
     const movie = await this.movieRepository.save({
       title: createMovieDto.title,
       genre: createMovieDto.genre,
-      detail: movieDetail,
+      detail: { detail: createMovieDto.detail },
     });
 
     // const movie: Movie = {
