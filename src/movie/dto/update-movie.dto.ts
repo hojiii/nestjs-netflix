@@ -74,6 +74,9 @@ export class UpdateMovieDto {
   @IsNotEmpty()
   @IsOptional()
   genre?: string;
+  @IsNotEmpty()
+  @IsOptional()
+  detail?: string;
 
   //null || undefind 이면 에러반환
   // @IsDefined()

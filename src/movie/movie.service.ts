@@ -91,18 +91,32 @@ export class MovieService {
       where: {
         id,
       },
+      relations: ['detail'],
     });
 
     // const movie = this.movies.find((m) => m.id === +id);
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
-    await this.movieRepository.update({ id }, updateMovieDto); //덮어씌우기 해당Id의 데이터
 
+    const { detail, ...movieRest } = updateMovieDto;
+    await this.movieRepository.update({ id }, movieRest); //덮어씌우기 해당Id의 데이터
+
+    if (detail) {
+      await this.moviedetailRepository.update(
+        {
+          id: movie.detail.id,
+        },
+        {
+          detail,
+        },
+      );
+    }
     const newMovie = await this.movieRepository.findOne({
       where: {
         id,
       },
+      relations: ['detail'],
     }); //업데이트된 해당 아이디 찾아서 반환,업데이트 함수는 저장한 값을 반환해주지 않기때문에
     // Object.assign(movie, updateMovieDto); //덮어씌우기
     return newMovie;
@@ -113,12 +127,14 @@ export class MovieService {
       where: {
         id,
       },
+      relations: ['detail'],
     });
     // const movieIndex = this.movies.findIndex((m) => m.id === +id);
     if (!movie) {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
     await this.movieRepository.delete(id);
+    await this.moviedetailRepository.delete(movie.id);
     // this.movies.splice(movieIndex, 1);
   }
 }
