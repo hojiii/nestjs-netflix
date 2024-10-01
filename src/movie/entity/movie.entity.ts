@@ -45,7 +45,9 @@ export class Movie extends BaseTable {
   @PrimaryGeneratedColumn()
   id: number;
   //   @Expose()
-  @Column()
+  @Column({
+    unique: true,
+  })
   title: string;
   //   @Transform(({ value }) => value.toString().toUpperCase())
   @Column()
@@ -57,14 +59,17 @@ export class Movie extends BaseTable {
     () => MovieDetail,
     (moviedetail) => moviedetail.id,
     //movie를 만들때 조인한 컬럼까지 전부다 같이 만들수 있게 해주는 옵션
-    { cascade: true },
+    { cascade: true, nullable: false },
   )
   @JoinColumn()
   detail: MovieDetail;
   //Entity Embedding
   //   @Column(() => BaseEntity)
   //   base: BaseEntity;
-  @ManyToOne(() => Director, (director) => director.id, { cascade: true })
+  @ManyToOne(() => Director, (director) => director.id, {
+    cascade: true,
+    nullable: false,
+  })
   director: Director;
 }
 // @Entity()
