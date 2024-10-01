@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
+import { DirectorModule } from './director/director.module';
+import { Director } from './director/entity/director.entity';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { MovieDetail } from './movie/entity/movie-detail.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Movie, MovieDetail],
+        entities: [Movie, MovieDetail, Director],
         //개발할때만 true , 운영은 false 자동으로 코드와 맞게 데이터베이스를 싱크를 시키라는것
         synchronize: true,
       }),
@@ -48,6 +50,7 @@ import { MovieDetail } from './movie/entity/movie-detail.entity';
     //   synchronize: true,
     // }),
     MovieModule,
+    DirectorModule,
   ], // 또다른 모듈을 현재 모듈로 불러들일때
   // exports: [], // import된 모듈에서 사용됬으면 하는 것을 넣으면 됨
   controllers: [],

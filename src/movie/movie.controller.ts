@@ -22,27 +22,27 @@ export class MovieController {
 
   @Get()
   getMovies(@Query('title') title?: string) {
-    return this.movieService.getManyMovies(title);
+    return this.movieService.findAll(title);
   }
 
   @Get(':id')
   getMovie(@Param('id') id: string) {
-    return this.movieService.getMovieByID(+id);
+    return this.movieService.findOne(+id);
   }
 
   @Post()
   //가져올값을 body에 넣어줘야함
   postMovie(@Body() body: CreateMovieDto) {
-    return this.movieService.creatMovie(body);
+    return this.movieService.create(body);
   }
 
   @Patch(':id')
   patchMovie(@Param('id') id: string, @Body() body: UpdateMovieDto) {
-    return this.movieService.updateMovie(+id, body);
+    return this.movieService.update(+id, body);
   }
 
   @Delete(':id')
   deleteMovie(@Param('id') id: string) {
-    return this.movieService.deleteMovie(+id);
+    return this.movieService.remove(+id);
   }
 }

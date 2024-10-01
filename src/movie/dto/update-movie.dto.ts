@@ -77,6 +77,9 @@ export class UpdateMovieDto {
   @IsNotEmpty()
   @IsOptional()
   detail?: string;
+  @IsNotEmpty()
+  @IsOptional()
+  directorId?: number;
 
   //null || undefind 이면 에러반환
   // @IsDefined()

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -5,6 +6,7 @@ import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { MovieDetail } from './entity/movie-detail.entity';
+import { Director } from 'src/director/entity/director.entity';
 
 @Injectable()
 export class MovieService {
@@ -18,6 +20,8 @@ export class MovieService {
     private readonly movieRepository: Repository<Movie>,
     @InjectRepository(MovieDetail)
     private readonly moviedetailRepository: Repository<MovieDetail>,
+    @InjectRepository(Director)
+    private readonly directorRepository: Repository<Director>,
   ) {
     //데이터 베이스를 inject해서 더미 필요없음
     // const movie1 = new Movie();
@@ -31,10 +35,12 @@ export class MovieService {
     // this.movies.push(movie1, movie2);
   }
 
-  async getManyMovies(title?: string) {
+  async findAll(title?: string) {
     if (!title) {
       return [
-        await this.movieRepository.find(),
+        await this.movieRepository.find({
+          relations: ['director'],
+        }),
         await this.movieRepository.count(),
       ];
     }
@@ -42,6 +48,7 @@ export class MovieService {
       where: {
         title: Like(`%${title}%`),
       },
+      relations: ['director'],
     });
     //TODO:나중에 title 필터 기능 추가하기
     //  if (!title) {
@@ -50,12 +57,12 @@ export class MovieService {
     //   return this.movies.filter((m) => m.title.startsWith(title));
   }
 
-  async getMovieByID(id: number) {
+  async findOne(id: number) {
     const movie = await this.movieRepository.findOne({
       where: {
         id,
       },
-      relations: ['detail'], //특정 값을 가져와서 보여주고싶을때 해당 프로퍼티를 넣는다
+      relations: ['detail', 'director'], //특정 값을 가져와서 보여주고싶을때 해당 프로퍼티를 넣는다
     });
     //   const movie = this.movies.find((m) => m.id === id);
 
@@ -65,14 +72,25 @@ export class MovieService {
     return movie;
   }
 
-  async creatMovie(createMovieDto: CreateMovieDto) {
+  async create(createMovieDto: CreateMovieDto) {
     // const movieDetail = await this.moviedetailRepository.save({
     //   detail: createMovieDto.detail,
     // });
+
+    const director = await this.directorRepository.findOne({
+      where: {
+        id: createMovieDto.directorId,
+      },
+    });
+
+    if (!director) {
+      throw new NotFoundException('존재하지 않는 ID의 감독입니다.');
+    }
     const movie = await this.movieRepository.save({
       title: createMovieDto.title,
       genre: createMovieDto.genre,
       detail: { detail: createMovieDto.detail },
+      director,
     });
 
     // const movie: Movie = {
@@ -86,7 +104,7 @@ export class MovieService {
     return movie;
   }
 
-  async updateMovie(id: number, updateMovieDto: UpdateMovieDto) {
+  async update(id: number, updateMovieDto: UpdateMovieDto) {
     const movie = await this.movieRepository.findOne({
       where: {
         id,
@@ -99,8 +117,27 @@ export class MovieService {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
 
-    const { detail, ...movieRest } = updateMovieDto;
-    await this.movieRepository.update({ id }, movieRest); //덮어씌우기 해당Id의 데이터
+    const { detail, directorId, ...movieRest } = updateMovieDto;
+
+    let newDirector;
+
+    if (directorId) {
+      const director = await this.directorRepository.findOne({
+        where: {
+          id: directorId,
+        },
+      });
+      if (!director) {
+        throw new NotFoundException('존재하지 않는 ID값의 감독입니다.');
+      }
+      newDirector = director;
+    }
+    const movieUpdateFields = {
+      ...movieRest,
+      ...(newDirector && { director: newDirector }),
+    };
+
+    await this.movieRepository.update({ id }, movieUpdateFields); //덮어씌우기 해당Id의 데이터
 
     if (detail) {
       await this.moviedetailRepository.update(
@@ -116,13 +153,13 @@ export class MovieService {
       where: {
         id,
       },
-      relations: ['detail'],
+      relations: ['detail', 'director'],
     }); //업데이트된 해당 아이디 찾아서 반환,업데이트 함수는 저장한 값을 반환해주지 않기때문에
     // Object.assign(movie, updateMovieDto); //덮어씌우기
     return newMovie;
   }
 
-  async deleteMovie(id: number) {
+  async remove(id: number) {
     const movie = await this.movieRepository.findOne({
       where: {
         id,
