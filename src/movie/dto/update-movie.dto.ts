@@ -1,8 +1,9 @@
 import {
+  ArrayNotEmpty,
   // Contains,
   // Equals,
   // IsAlphanumeric,
-  // IsArray,
+  IsArray,
   // IsBoolean,
   // IsCreditCard,
   // IsDateString,
@@ -15,9 +16,11 @@ import {
   // IsLatLong,
   // IsNegative,
   IsNotEmpty,
+  IsNumber,
   // IsNotIn,
   // IsNumber,
   IsOptional,
+  IsString,
   // IsPositive,
   // isPositive,
   // IsString,
@@ -70,15 +73,28 @@ import {
 export class UpdateMovieDto {
   @IsNotEmpty()
   @IsOptional()
+  @IsString()
   title?: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber(
+    {},
+    {
+      each: true,
+    },
+  )
+  @IsOptional()
+  genreIds?: number[];
+
   @IsNotEmpty()
   @IsOptional()
-  genre?: string;
-  @IsNotEmpty()
-  @IsOptional()
+  @IsString()
   detail?: string;
+
   @IsNotEmpty()
   @IsOptional()
+  @IsNumber()
   directorId?: number;
 
   //null || undefind 이면 에러반환

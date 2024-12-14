@@ -4,9 +4,10 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entity/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from 'src/director/entity/director.entity';
+import { Genre } from 'src/genre/entity/genre.entity';
 
 @Injectable()
 export class MovieService {
@@ -22,6 +23,8 @@ export class MovieService {
     private readonly moviedetailRepository: Repository<MovieDetail>,
     @InjectRepository(Director)
     private readonly directorRepository: Repository<Director>,
+    @InjectRepository(Genre)
+    private readonly genreRepository: Repository<Genre>,
   ) {
     //데이터 베이스를 inject해서 더미 필요없음
     // const movie1 = new Movie();
@@ -39,7 +42,7 @@ export class MovieService {
     if (!title) {
       return [
         await this.movieRepository.find({
-          relations: ['director'],
+          relations: ['director', 'genres'],
         }),
         await this.movieRepository.count(),
       ];
@@ -48,7 +51,7 @@ export class MovieService {
       where: {
         title: Like(`%${title}%`),
       },
-      relations: ['director'],
+      relations: ['director', 'genres'],
     });
     //TODO:나중에 title 필터 기능 추가하기
     //  if (!title) {
@@ -62,7 +65,7 @@ export class MovieService {
       where: {
         id,
       },
-      relations: ['detail', 'director'], //특정 값을 가져와서 보여주고싶을때 해당 프로퍼티를 넣는다
+      relations: ['detail', 'director', 'genres'], //특정 값을 가져와서 보여주고싶을때 해당 프로퍼티를 넣는다
     });
     //   const movie = this.movies.find((m) => m.id === id);
 
@@ -86,11 +89,21 @@ export class MovieService {
     if (!director) {
       throw new NotFoundException('존재하지 않는 ID의 감독입니다.');
     }
+    const genres = await this.genreRepository.find({
+      where: {
+        id: In(createMovieDto.genreIds),
+      },
+    });
+    if (genres.length !== createMovieDto.genreIds.length) {
+      throw new NotFoundException(
+        `존재하지 않는 장르가 있습니다. 존재하는 ids => ${genres.map((genre) => genre.id).join(',')}`,
+      );
+    }
     const movie = await this.movieRepository.save({
       title: createMovieDto.title,
-      genre: createMovieDto.genre,
       detail: { detail: createMovieDto.detail },
       director,
+      genres,
     });
 
     // const movie: Movie = {
@@ -117,7 +130,7 @@ export class MovieService {
       throw new NotFoundException('존재하지 않는 ID값의 입력입니다.');
     }
 
-    const { detail, directorId, ...movieRest } = updateMovieDto;
+    const { detail, directorId, genreIds, ...movieRest } = updateMovieDto;
 
     let newDirector;
 
@@ -132,6 +145,21 @@ export class MovieService {
       }
       newDirector = director;
     }
+    let newGenres;
+    if (genreIds) {
+      const genres = await this.genreRepository.find({
+        where: {
+          id: In(genreIds),
+        },
+      });
+      if (genres.length !== updateMovieDto.genreIds.length) {
+        throw new NotFoundException(
+          `존재하지 않는 장르가 있습니다. 존재하는 ids => ${genres.map((genre) => genre.id).join(',')}`,
+        );
+      }
+      newGenres = genres;
+    }
+
     const movieUpdateFields = {
       ...movieRest,
       ...(newDirector && { director: newDirector }),
@@ -156,7 +184,14 @@ export class MovieService {
       relations: ['detail', 'director'],
     }); //업데이트된 해당 아이디 찾아서 반환,업데이트 함수는 저장한 값을 반환해주지 않기때문에
     // Object.assign(movie, updateMovieDto); //덮어씌우기
-    return newMovie;
+    newMovie.genres = newGenres;
+    await this.movieRepository.save(newMovie);
+    return this.movieRepository.findOne({
+      where: {
+        id,
+      },
+      relations: ['detail', 'director', 'genres'],
+    });
   }
 
   async remove(id: number) {

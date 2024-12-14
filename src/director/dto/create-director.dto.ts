@@ -1,11 +1,21 @@
-import { IsDateString, IsNotEmpty } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateDirectorDto {
   @IsNotEmpty()
+  @IsString()
   name: string;
+
   @IsNotEmpty()
   @IsDateString()
   dob: Date;
+
   @IsNotEmpty()
-  nationality: string;
+  @IsOptional()
+  @IsString()
+  nationality?: string;
 }
